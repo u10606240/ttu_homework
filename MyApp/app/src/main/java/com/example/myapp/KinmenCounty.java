@@ -29,7 +29,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class TaipeiCity extends AppCompatActivity{
+public class KinmenCounty extends AppCompatActivity{
     public byte[] messages = new byte[1];
 
     private int ENABLE_BLUETOOTH=2;
@@ -51,7 +51,7 @@ public class TaipeiCity extends AppCompatActivity{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.newtaipei);
+        setContentView(R.layout.kinmen);
 
         initView(); Log.d("check","initView()");
 
@@ -121,9 +121,9 @@ public class TaipeiCity extends AppCompatActivity{
             public void onClick(View v) {
                 // TODO Auto-generated method stub
                 Intent intent = new Intent();
-                intent.setClass(TaipeiCity.this, MainActivity.class);
+                intent.setClass(KinmenCounty.this, MainActivity.class);
                 startActivity(intent);
-                TaipeiCity.this.finish();
+                KinmenCounty.this.finish();
             }
         });
 
@@ -206,7 +206,7 @@ public class TaipeiCity extends AppCompatActivity{
             String links = jsonObject.getString("_links");
             String total = jsonObject.getString("total");
             JSONArray array = jsonObject.getJSONArray("records");
-            String go = "12";
+            String go = "77";
             int tmp=1;
             for(int i=0;i<array.length();i++) {
                 if(array.getJSONObject(i).getString("SiteId").equals(go)){

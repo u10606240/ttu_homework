@@ -27,5 +27,24 @@
         <activity android:name=".KeelungCity"></activity>
         <activity android:name=".TaipeiCity"></activity>
         <activity android:name=".NewTaipeiCity"></activity>
+        <activity android:name=".TaoyuanCity"></activity>
+        <activity android:name=".HsinchuCity"></activity>
+        <activity android:name=".HsinchuCounty"></activity>
+        <activity android:name=".MiaoliCounty"></activity>
+        <activity android:name=".TaichungCity"></activity>
+        <activity android:name=".NantouCounty"></activity>
+        <activity android:name=".ChanghuaCounty"></activity>
+        <activity android:name=".YunlinCounty"></activity>
+        <activity android:name=".ChiayiCity"></activity>
+        <activity android:name=".ChiayiCounty"></activity>
+        <activity android:name=".TainanCity"></activity>
+        <activity android:name=".KaohsiungCity"></activity>
+        <activity android:name=".PingtungCounty"></activity>
+        <activity android:name=".YilanCounty"></activity>
+        <activity android:name=".HualienCounty"></activity>
+        <activity android:name=".TaitungCounty"></activity>
+        <activity android:name=".PenghuCounty"></activity>
+        <activity android:name=".KinmenCounty"></activity>
+        <activity android:name=".Matsu"></activity>
     </application>
 </manifest>

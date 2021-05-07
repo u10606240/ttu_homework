@@ -19,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +30,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class TaipeiCity extends AppCompatActivity{
+public class HsinchuCity extends AppCompatActivity{
     public byte[] messages = new byte[1];
 
     private int ENABLE_BLUETOOTH=2;
@@ -51,7 +52,7 @@ public class TaipeiCity extends AppCompatActivity{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.newtaipei);
+        setContentView(R.layout.hsinchucity);
 
         initView(); Log.d("check","initView()");
 
@@ -121,9 +122,9 @@ public class TaipeiCity extends AppCompatActivity{
             public void onClick(View v) {
                 // TODO Auto-generated method stub
                 Intent intent = new Intent();
-                intent.setClass(TaipeiCity.this, MainActivity.class);
+                intent.setClass(HsinchuCity.this, MainActivity.class);
                 startActivity(intent);
-                TaipeiCity.this.finish();
+                HsinchuCity.this.finish();
             }
         });
 
@@ -206,7 +207,7 @@ public class TaipeiCity extends AppCompatActivity{
             String links = jsonObject.getString("_links");
             String total = jsonObject.getString("total");
             JSONArray array = jsonObject.getJSONArray("records");
-            String go = "12";
+            String go = "24";
             int tmp=1;
             for(int i=0;i<array.length();i++) {
                 if(array.getJSONObject(i).getString("SiteId").equals(go)){

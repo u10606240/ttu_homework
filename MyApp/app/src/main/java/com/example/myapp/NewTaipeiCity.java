@@ -3,84 +3,59 @@ package com.example.myapp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.ListView;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.UUID;
 
 public class NewTaipeiCity extends AppCompatActivity{
-    /*public byte[] messages = new byte[1];
+    public byte[] messages = new byte[1];
 
-    private int ENABLE_BLUETOOTH=1;
+    private int ENABLE_BLUETOOTH=2;
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     BluetoothDevice bluetoothDevice;
     BluetoothSocket bluetoothSocket = null;
     OutputStream outputStream = null;
     private static final UUID MY_UUID_SECURE=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-    private String blueAddress="FC:A8:9A:00:28:81";//蓝牙模块的MAC地址
 
-    private static final String TAG = "tzbc";
-    private static final int MSG_UPDATE_UI = 1136;
-    private String post;
-    private TextView tvSiteName, tvCounty, tvAQI, tvPM2_5, tvStatus, tvPublishTime;
-    private String btAddress = "20:16:05:25:48:45";
-    ArrayList<String> list = new ArrayList<String>();
-    int foo,tmp;
+    private String btAddress="FC:A8:9A:00:28:81";//蓝牙模块的MAC地址
 
-
-    private Handler handler = new Handler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            super.handleMessage(msg);
-            ArrayList<String> lis = (ArrayList<String>) msg.obj;
-            tvSiteName.setText(lis.get(0));
-            tvCounty.setText(lis.get(1));
-            tvAQI.setText(lis.get(2));
-            tvPM2_5.setText(lis.get(3));
-            tvStatus.setText(lis.get(4));
-            tvPublishTime.setText(lis.get(5));
-
-            //System.out.println(foo);
-        }
-    };
-
-    public byte getmsg(){
-        System.out.println(messages[0]);
-        return messages[0];
-    }
+    int foo;
+    String post;
+    private ArrayList<Air> lists = new ArrayList<>();
+    private JsonAdapter jsonAdapter;
+    String host="https://data.epa.gov.tw/api/v1/aqx_p_432?api_key=ea65dc8a-8320-4319-8510-c36498b1a5e4";
+    //String host="https://data.epa.gov.tw/api/v1/aqx_p_432?limit=1000&api_key=9be7b239-557b-4c10-9775-78cadfc555e9&format=json";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.keelung);
+        setContentView(R.layout.newtaipei);
 
-        airThread.start();
+        initView(); Log.d("check","initView()");
 
-        tvSiteName = findViewById(R.id.tvSiteName);
-        tvCounty = findViewById(R.id.tvCounty);
-        tvAQI = findViewById(R.id.tvAQI);
-        tvPM2_5 = findViewById(R.id.tvPM2_5);
-        tvStatus = findViewById(R.id.tvStatus);
-        tvPublishTime = findViewById(R.id.tvPublishTime);
         if(bluetoothAdapter==null){
             Toast.makeText(this,"不支持蓝牙",Toast.LENGTH_LONG).show();
             finish();
@@ -90,25 +65,55 @@ public class NewTaipeiCity extends AppCompatActivity{
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(intent,ENABLE_BLUETOOTH);
         }
-        //System.out.println(message[0]);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    parseJsonData(readParse(host));
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+        //这里休眠是为了让子线程结束 lists才有值
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        ListView listview = (ListView) findViewById(R.id.listview);
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        jsonAdapter = new JsonAdapter(this,lists);
+        jsonAdapter.notifyDataSetChanged();
+        listview.setAdapter(jsonAdapter);
+
+    }
+
+    public static String readParse(String urlPath) throws Exception {
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        byte[] data = new byte[1024];
+        int len = 0;
+        URL url = new URL(urlPath);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        InputStream inStream = conn.getInputStream();
+        while ((len = inStream.read(data)) != -1) {
+            outStream.write(data, 0, len);
+        }
+        inStream.close();
+        return new String(outStream.toByteArray());//通过out.Stream.toByteArray获取到写的数据
+    }
+
+    private void initView() {
         Button start = (Button)findViewById(R.id.button00);
         start.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                //System.out.println(foo);
                 messages[0]= (byte) foo;//设置要发送的数值
-
-                //bluesend(message);发送数值
-                if(messages!=null) {
-                    try {
-                        outputStream = bluetoothSocket.getOutputStream();
-                    } catch (IOException e) {
-                        Log.e("Fatal Error", "in sendData() input and output stream creation failed:" + e.getMessage() + ".");
-                    }
-                    try {
-                        outputStream.write(messages);
-                    } catch (IOException e) { }
-                }
+                bluesend(messages);//发送数值
                 Log.d("value",""+messages[0]);
             }});
         Button button = (Button) findViewById(R.id.button02);
@@ -119,7 +124,6 @@ public class NewTaipeiCity extends AppCompatActivity{
                 Intent intent = new Intent();
                 intent.setClass(NewTaipeiCity.this, MainActivity.class);
                 startActivity(intent);
-                //sendBT("1");
                 NewTaipeiCity.this.finish();
             }
         });
@@ -127,61 +131,72 @@ public class NewTaipeiCity extends AppCompatActivity{
     }
 
     //蓝牙发送数据
+    public void bluesend(byte[] messages){
+        if(messages!=null) {
+            try {
+                outputStream = bluetoothSocket.getOutputStream();
+            } catch (IOException e) {
+                Log.e("Fatal Error", "in sendData() input and output stream creation failed:" + e.getMessage() + ".");
+            }
+            try {
+                outputStream.write(messages);
+            } catch (IOException e) { }
+        }
+    }
+
     @Override
     protected void onDestroy(){
         super.onDestroy();
         try{
             bluetoothSocket.close();
         }catch (IOException e){
+            System.out.println("onDestroy錯誤!!!");
             e.printStackTrace();
         }
+    }
+
+    private BluetoothSocket createBluetoothSocket(BluetoothDevice device) throws IOException {
+        if(Build.VERSION.SDK_INT >= 10){
+            try {
+                final Method m = device.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", new Class[] { UUID.class });
+                return (BluetoothSocket) m.invoke(device, MY_UUID_SECURE);
+            } catch (Exception e) {
+                Log.e("true", "Could not create Insecure RFComm Connection",e);
+            }
+        }
+        return  device.createRfcommSocketToServiceRecord(MY_UUID_SECURE);
     }
 
     @Override
     protected void onResume(){
         super.onResume();
-        Set<BluetoothDevice> devices = bluetoothAdapter.getBondedDevices();
-        bluetoothDevice = bluetoothAdapter.getRemoteDevice(blueAddress);
-        //System.out.println(blueAddress);
-        try{
-            bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(MY_UUID_SECURE);
-        }catch (Exception e){ Log.e("","Error creating socket"); }
-        try{
-            bluetoothSocket.connect();
-            Log.e("","完成连接");
+        Log.d("true", "...onResume - try connect...");
+
+        bluetoothDevice = bluetoothAdapter.getRemoteDevice(btAddress);
+
+        try {
+            bluetoothSocket = createBluetoothSocket(bluetoothDevice);
         } catch (IOException e) {
-            Log.e("",e.getMessage());
-            try{
-                Log.e("","trying fallback...");
-                bluetoothSocket = (BluetoothSocket) devices.getClass().getMethod("createRfcommSocket", new Class[] {int.class}).invoke(devices,1);
-                bluetoothSocket.connect();
-                Log.e("","完成连接");
-            } catch(Exception e2){Log.e("","Couldn't establish bluetooth connection!"); }
+            Log.d("Fatal Error", "In onResume() and socket create failed: " + e.getMessage() + ".");
         }
-
-    }
-
-    Thread airThread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            getAir();
-        }
-    });
-
-    private void getAir() {
-        String path = "https://data.epa.gov.tw/api/v1/aqx_p_432?api_key=ea65dc8a-8320-4319-8510-c36498b1a5e4&format=json";
+        Log.d("true", "...Connecting...");
         try {
-            String html = HtmlService.getHtml(path);
-            Log.e(TAG, "html : " + html);
-            analyzeAir(html);
-        } catch (Exception e) {
-            e.printStackTrace();
+            bluetoothSocket.connect();
+            Log.d("true", "....Connection ok...");
+        } catch (IOException e) {
+            try {
+                bluetoothSocket.close();
+                Log.d("true", "....Close...");
+            } catch (IOException e2) {
+                Log.d("Fatal Error", "In onResume() and unable to close socket during connection failure" + e2.getMessage() + ".");
+            }
         }
     }
 
-    private void analyzeAir(String airStr) {
+    private void parseJsonData(String string){
         try {
-            JSONObject jsonObject = new JSONObject(airStr);
+            //JSONArray array = new JSONArray(airStr);
+            JSONObject jsonObject = new JSONObject(string);
             String include = jsonObject.getString("include_total");
             String resourse = jsonObject.getString("resource_id");
             String fields = jsonObject.getString("fields");
@@ -192,41 +207,33 @@ public class NewTaipeiCity extends AppCompatActivity{
             String links = jsonObject.getString("_links");
             String total = jsonObject.getString("total");
             JSONArray array = jsonObject.getJSONArray("records");
-
             String go = "70";
             int tmp=1;
             for(int i=0;i<array.length();i++) {
-                //JSONObject jsonObject = array.getJSONObject(i);
-                //System.out.println(array.getJSONObject(i).getString("SiteId"));
                 if(array.getJSONObject(i).getString("SiteId").equals(go)){
                     tmp=i;
                 }
-                //System.out.println(tmp);
             }
-            //System.out.println(tmp);
-            //JSONObject jsonObject = array.getJSONObject(83);
-            list.add("縣市 : " + array.getJSONObject(tmp).getString("County"));
-            list.add("地區 : " + array.getJSONObject(tmp).getString("SiteName"));
-            list.add("空氣品質指標 : " + array.getJSONObject(tmp).getString("AQI"));
-            list.add("PM2.5指數 : " + array.getJSONObject(tmp).getString("PM2.5"));
-            list.add("空氣狀態 : " + array.getJSONObject(tmp).getString("Status"));
-            list.add("發布時間 : " + array.getJSONObject(tmp).getString("PublishTime"));
 
-            System.out.println(list);
+            Air air = new Air();
+            air.setCounty("縣市 : " + array.getJSONObject(tmp).getString("County"));
+            air.setSiteName("地區 : " + array.getJSONObject(tmp).getString("SiteName"));
+            air.setAQI("空氣品質指標 : " + array.getJSONObject(tmp).getString("AQI"));
+            air.setPM2_5("PM2.5指數 : " + array.getJSONObject(tmp).getString("PM2.5"));
+            air.setStatus("空氣狀態 : " + array.getJSONObject(tmp).getString("Status"));
+            air.setPublishTime("發布時間 : " + array.getJSONObject(tmp).getString("PublishTime"));
 
-            Message message = Message.obtain();
-            message.what = MSG_UPDATE_UI;
-            message.obj = list;
-            post = list.get(2).substring(9,11);
+            lists.add(air);
+
+            post = array.getJSONObject(tmp).getString("AQI");
             foo = Integer.parseInt(post);
-            Bundle bundle = new Bundle();
-            bundle.putInt("",foo);
-            message.setData(bundle);
-            handler.sendMessage(message);
-            //System.out.println(foo);
+
+            Log.i("Test", "OK,数据存储完成");
+            Log.i("Test", "List长度为："+lists.size());
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }*/
+    }
+
 }
