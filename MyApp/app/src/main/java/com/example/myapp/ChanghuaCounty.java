@@ -39,7 +39,7 @@ public class ChanghuaCounty extends AppCompatActivity{
     OutputStream outputStream = null;
     private static final UUID MY_UUID_SECURE=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
-    private String btAddress="FC:A8:9A:00:28:81";//蓝牙模块的MAC地址
+    private String btAddress="FC:A8:9A:00:28:81";//藍芽模塊的MAC地址
 
     int foo;
     String post;
@@ -56,11 +56,11 @@ public class ChanghuaCounty extends AppCompatActivity{
         initView(); Log.d("check","initView()");
 
         if(bluetoothAdapter==null){
-            Toast.makeText(this,"不支持蓝牙",Toast.LENGTH_LONG).show();
+            Toast.makeText(this,"不支持藍芽",Toast.LENGTH_LONG).show();
             finish();
         }
         else if(!bluetoothAdapter.isEnabled()){
-            Log.d("true","开始连接");
+            Log.d("true","開始連接");
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(intent,ENABLE_BLUETOOTH);
         }
@@ -77,7 +77,7 @@ public class ChanghuaCounty extends AppCompatActivity{
             }
         }).start();
 
-        //这里休眠是为了让子线程结束 lists才有值
+        //這裡休眠是為了讓子線程结束 lists才有值
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -103,7 +103,7 @@ public class ChanghuaCounty extends AppCompatActivity{
             outStream.write(data, 0, len);
         }
         inStream.close();
-        return new String(outStream.toByteArray());//通过out.Stream.toByteArray获取到写的数据
+        return new String(outStream.toByteArray());//通過out.Stream.toByteArray獲取到寫的數據
     }
 
     private void initView() {
@@ -111,8 +111,8 @@ public class ChanghuaCounty extends AppCompatActivity{
         start.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                messages[0]= (byte) foo;//设置要发送的数值
-                bluesend(messages);//发送数值
+                messages[0]= (byte) foo;//設置要發送的數值
+                bluesend(messages);//發送數值
                 Log.d("value",""+messages[0]);
             }});
         Button button = (Button) findViewById(R.id.button02);
@@ -129,7 +129,7 @@ public class ChanghuaCounty extends AppCompatActivity{
 
     }
 
-    //蓝牙发送数据
+    //藍牙發送數據
     public void bluesend(byte[] messages){
         if(messages!=null) {
             try {
@@ -227,8 +227,8 @@ public class ChanghuaCounty extends AppCompatActivity{
             post = array.getJSONObject(tmp).getString("AQI");
             foo = Integer.parseInt(post);
 
-            Log.i("Test", "OK,数据存储完成");
-            Log.i("Test", "List长度为："+lists.size());
+            Log.i("Test", "OK,數據儲存完成");
+            Log.i("Test", "List長度為："+lists.size());
 
         } catch (JSONException e) {
             e.printStackTrace();
