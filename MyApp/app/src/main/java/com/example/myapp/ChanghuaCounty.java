@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -29,7 +31,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class ChanghuaCounty extends AppCompatActivity{
+public class ChanghuaCounty extends AppCompatActivity{  //1.從網址抓資料 2.把資料抓下來輸出螢幕 3.傳AQI值給藍牙
     public byte[] messages = new byte[1];
 
     private int ENABLE_BLUETOOTH=2;
@@ -42,7 +44,10 @@ public class ChanghuaCounty extends AppCompatActivity{
     private String btAddress="FC:A8:9A:00:28:81";//藍芽模塊的MAC地址
 
     int foo;
+    int test;
     String post;
+    String test2;
+    TextView test3;
     private ArrayList<Air> lists = new ArrayList<>();
     private JsonAdapter jsonAdapter;
     String host="https://data.epa.gov.tw/api/v1/aqx_p_432?api_key=ea65dc8a-8320-4319-8510-c36498b1a5e4";
@@ -90,20 +95,36 @@ public class ChanghuaCounty extends AppCompatActivity{
         jsonAdapter.notifyDataSetChanged();
         listview.setAdapter(jsonAdapter);
 
+        test3 = (TextView)findViewById(R.id.test3);
+
+        if(test>=0 && test < 50) test2 = "小提醒:能正常戶外活動";
+        else if(test>=51 && test < 100) test2 = "小提醒:能正常戶外活動";
+        else if(test>=101 && test < 150) test2 = "小提醒:一般民眾如果有不適，如眼痛，咳嗽或喉嚨痛等，應該考慮減少戶外活動";
+        else if(test>=151 && test < 200) test2 = "小提醒:一般民眾如果有不適，如眼痛，咳嗽或喉嚨痛等，應減少體力消耗，特別是減少戶外活動";
+        else if(test>=201 && test < 300) test2 = "小提醒:一般民眾應減少戶外活動";
+        else if(test>=301 && test < 500) test2 = "小提醒:一般民眾應避免戶外活動，室內應緊閉門窗，必要外出應配戴口罩等防護用具";
+
+        System.out.println(test2);
+
+        test3.setText(test2);
     }
 
     public static String readParse(String urlPath) throws Exception {
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         byte[] data = new byte[1024];
+
         int len = 0;
+
         URL url = new URL(urlPath);
+
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
         InputStream inStream = conn.getInputStream();
         while ((len = inStream.read(data)) != -1) {
             outStream.write(data, 0, len);
         }
         inStream.close();
-        return new String(outStream.toByteArray());//通過out.Stream.toByteArray獲取到寫的數據
+        return new String(outStream.toByteArray());//通過outStream.toByteArray獲取到寫的數據
     }
 
     private void initView() {
@@ -207,25 +228,57 @@ public class ChanghuaCounty extends AppCompatActivity{
             String total = jsonObject.getString("total");
             JSONArray array = jsonObject.getJSONArray("records");
             String go = "35";
+            String pro = "監測站未提供資料";
+            Air air = new Air();
+            int mode=0;
             int tmp=1;
             for(int i=0;i<array.length();i++) {
                 if(array.getJSONObject(i).getString("SiteId").equals(go)){
                     tmp=i;
                 }
             }
+            for(int j=0;j<1;j++) {
+                if(array.getJSONObject(tmp).getString("AQI").equals("")){
+                    air.setAQI("空氣品質指標 : " + pro);
+                    mode=1;
+                }
+                if(array.getJSONObject(tmp).getString("PM2.5").equals("")){
+                    air.setPM2_5("PM2.5指數 : " + pro);
+                    mode=1;
+                }
+                if(array.getJSONObject(tmp).getString("Status").equals("")){
+                    air.setStatus("空氣狀態 : " + pro);
+                    mode=1;
+                }
+                if(array.getJSONObject(tmp).getString("PublishTime").equals("")){
+                    air.setPublishTime("發布時間 : " + pro);
+                    mode=1;
+                }
+            }
 
-            Air air = new Air();
-            air.setCounty("縣市 : " + array.getJSONObject(tmp).getString("County"));
-            air.setSiteName("地區 : " + array.getJSONObject(tmp).getString("SiteName"));
-            air.setAQI("空氣品質指標 : " + array.getJSONObject(tmp).getString("AQI"));
-            air.setPM2_5("PM2.5指數 : " + array.getJSONObject(tmp).getString("PM2.5"));
-            air.setStatus("空氣狀態 : " + array.getJSONObject(tmp).getString("Status"));
-            air.setPublishTime("發布時間 : " + array.getJSONObject(tmp).getString("PublishTime"));
+            if(mode == 0) {
+                air.setCounty("縣市 : " + array.getJSONObject(tmp).getString("County"));
+                air.setSiteName("地區 : " + array.getJSONObject(tmp).getString("SiteName"));
+                air.setAQI("空氣品質指標 : " + array.getJSONObject(tmp).getString("AQI"));
+                air.setPM2_5("PM2.5指數 : " + array.getJSONObject(tmp).getString("PM2.5"));
+                air.setStatus("空氣狀態 : " + array.getJSONObject(tmp).getString("Status"));
+                air.setPublishTime("發布時間 : " + array.getJSONObject(tmp).getString("PublishTime"));
+            }
+            else if(mode == 1){
+                air.setCounty("縣市 : " + array.getJSONObject(tmp).getString("County"));
+                air.setSiteName("地區 : " + array.getJSONObject(tmp).getString("SiteName"));
+                if(!array.getJSONObject(tmp).getString("AQI").equals("")) air.setAQI("空氣品質指標 : " + array.getJSONObject(tmp).getString("AQI"));
+                if(!array.getJSONObject(tmp).getString("PM2.5").equals("")) air.setPM2_5("PM2.5指數 : " + array.getJSONObject(tmp).getString("PM2.5"));
+                if(!array.getJSONObject(tmp).getString("Status").equals("")) air.setStatus("空氣狀態 : " + array.getJSONObject(tmp).getString("Status"));
+                if(!array.getJSONObject(tmp).getString("PublishTime").equals("")) air.setPublishTime("發布時間 : " + array.getJSONObject(tmp).getString("PublishTime"));
+            }
 
             lists.add(air);
 
             post = array.getJSONObject(tmp).getString("AQI");
             foo = Integer.parseInt(post);
+            test = foo;
+
 
             Log.i("Test", "OK,數據儲存完成");
             Log.i("Test", "List長度為："+lists.size());
@@ -234,4 +287,6 @@ public class ChanghuaCounty extends AppCompatActivity{
             e.printStackTrace();
         }
     }
+
+
 }

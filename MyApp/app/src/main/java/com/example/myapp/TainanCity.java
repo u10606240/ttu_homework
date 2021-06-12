@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -42,7 +43,10 @@ public class TainanCity extends AppCompatActivity{
     private String btAddress="FC:A8:9A:00:28:81";//蓝牙模块的MAC地址
 
     int foo;
+    int test;
     String post;
+    String test2;
+    TextView test3;
     private ArrayList<Air> lists = new ArrayList<>();
     private JsonAdapter jsonAdapter;
     String host="https://data.epa.gov.tw/api/v1/aqx_p_432?api_key=ea65dc8a-8320-4319-8510-c36498b1a5e4";
@@ -90,6 +94,18 @@ public class TainanCity extends AppCompatActivity{
         jsonAdapter.notifyDataSetChanged();
         listview.setAdapter(jsonAdapter);
 
+        test3 = (TextView)findViewById(R.id.test3);
+
+        if(test>=0 && test < 50) test2 = "小提醒:能正常戶外活動";
+        else if(test>=51 && test < 100) test2 = "小提醒:能正常戶外活動";
+        else if(test>=101 && test < 150) test2 = "小提醒:一般民眾如果有不適，如眼痛，咳嗽或喉嚨痛等，應該考慮減少戶外活動";
+        else if(test>=151 && test < 200) test2 = "小提醒:一般民眾如果有不適，如眼痛，咳嗽或喉嚨痛等，應減少體力消耗，特別是減少戶外活動";
+        else if(test>=201 && test < 300) test2 = "小提醒:一般民眾應減少戶外活動";
+        else if(test>=301 && test < 500) test2 = "小提醒:一般民眾應避免戶外活動，室內應緊閉門窗，必要外出應配戴口罩等防護用具";
+
+        System.out.println(test2);
+
+        test3.setText(test2);
     }
 
     public static String readParse(String urlPath) throws Exception {
@@ -207,25 +223,57 @@ public class TainanCity extends AppCompatActivity{
             String total = jsonObject.getString("total");
             JSONArray array = jsonObject.getJSONArray("records");
             String go = "43";
+            String pro = "監測站未提供資料";
+            Air air = new Air();
+            int mode=0;
             int tmp=1;
             for(int i=0;i<array.length();i++) {
                 if(array.getJSONObject(i).getString("SiteId").equals(go)){
                     tmp=i;
                 }
             }
+            for(int j=0;j<1;j++) {
 
-            Air air = new Air();
-            air.setCounty("縣市 : " + array.getJSONObject(tmp).getString("County"));
-            air.setSiteName("地區 : " + array.getJSONObject(tmp).getString("SiteName"));
-            air.setAQI("空氣品質指標 : " + array.getJSONObject(tmp).getString("AQI"));
-            air.setPM2_5("PM2.5指數 : " + array.getJSONObject(tmp).getString("PM2.5"));
-            air.setStatus("空氣狀態 : " + array.getJSONObject(tmp).getString("Status"));
-            air.setPublishTime("發布時間 : " + array.getJSONObject(tmp).getString("PublishTime"));
+                if(array.getJSONObject(tmp).getString("AQI").equals("")){
+                    air.setAQI("空氣品質指標 : " + pro);
+                    mode=1;
+                }
+                if(array.getJSONObject(tmp).getString("PM2.5").equals("")){
+                    air.setPM2_5("PM2.5指數 : " + pro);
+                    mode=1;
+                }
+                if(array.getJSONObject(tmp).getString("Status").equals("")){
+                    air.setStatus("空氣狀態 : " + pro);
+                    mode=1;
+                }
+                if(array.getJSONObject(tmp).getString("PublishTime").equals("")){
+                    air.setPublishTime("發布時間 : " + pro);
+                    mode=1;
+                }
+            }
+
+            if(mode == 0) {
+                air.setCounty("縣市 : " + array.getJSONObject(tmp).getString("County"));
+                air.setSiteName("地區 : " + array.getJSONObject(tmp).getString("SiteName"));
+                air.setAQI("空氣品質指標 : " + array.getJSONObject(tmp).getString("AQI"));
+                air.setPM2_5("PM2.5指數 : " + array.getJSONObject(tmp).getString("PM2.5"));
+                air.setStatus("空氣狀態 : " + array.getJSONObject(tmp).getString("Status"));
+                air.setPublishTime("發布時間 : " + array.getJSONObject(tmp).getString("PublishTime"));
+            }
+            else if(mode == 1){
+                air.setCounty("縣市 : " + array.getJSONObject(tmp).getString("County"));
+                air.setSiteName("地區 : " + array.getJSONObject(tmp).getString("SiteName"));
+                if(!array.getJSONObject(tmp).getString("AQI").equals("")) air.setAQI("空氣品質指標 : " + array.getJSONObject(tmp).getString("AQI"));
+                if(!array.getJSONObject(tmp).getString("PM2.5").equals("")) air.setPM2_5("PM2.5指數 : " + array.getJSONObject(tmp).getString("PM2.5"));
+                if(!array.getJSONObject(tmp).getString("Status").equals("")) air.setStatus("空氣狀態 : " + array.getJSONObject(tmp).getString("Status"));
+                if(!array.getJSONObject(tmp).getString("PublishTime").equals("")) air.setPublishTime("發布時間 : " + array.getJSONObject(tmp).getString("PublishTime"));
+            }
 
             lists.add(air);
 
             post = array.getJSONObject(tmp).getString("AQI");
             foo = Integer.parseInt(post);
+            test = foo;
 
             Log.i("Test", "OK,数据存储完成");
             Log.i("Test", "List长度为："+lists.size());

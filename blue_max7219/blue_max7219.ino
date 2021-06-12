@@ -30,9 +30,11 @@ const int width = 5 + spacer; // 字體寬度為5像素
 void setup(){
    Serial.begin(9600);
    BT.begin(9600);
+   
    pinMode(RLED,OUTPUT);
    pinMode(GLED,OUTPUT);
    pinMode(BLED,OUTPUT);
+   
    matrix. setIntensity ( 10 ) ;  // Adjust the brightness between 0 and 15
    matrix. setPosition ( 0 ,  0 ,  0 ) ;  // The first display is at <0, 0>
    matrix. setPosition ( 1 ,  1 ,  0 ) ;  // The second display is at <1, 0>
@@ -54,23 +56,29 @@ void setup(){
    matrix. setRotation ( 8 ,  1 ) ;     // Display position
 }
 void loop(){
+  
     int tmp=0;
+    
     digitalWrite(RLED, LOW);
     digitalWrite(GLED, LOW);
     digitalWrite(BLED, LOW);
+    
     String string = "Air Quality";
+    
     String state1 = { ":Good" };
     String state2 = { ":Moderate" };
     String state3 = { ":Unhealthy For Sensitive Group" };
     String state4 = { ":Unhealthy" };
     String state5 = { ":Very Unhealthy" };
     String state6 = { ":Hazardous" };   
+    
     long int time = millis();
    
    while(BT.available()){
        val = BT.read();
        //val=Serial.parseInt(value);
        Serial.print(val);
+       
        if(val>=0 && val<=50){
         tmp=1;
         digitalWrite(RLED, HIGH);
@@ -79,6 +87,7 @@ void loop(){
         delay(1000);
         string += state1;
        }
+       
        else if(val>=51 && val<=100){
         tmp=2;
         digitalWrite(RLED, LOW);
@@ -87,6 +96,7 @@ void loop(){
         delay(1000);        
         string += state2;
        }
+       
        else if(val>=101 && val<=150){
         tmp=3;
         digitalWrite(RLED, LOW);
@@ -94,6 +104,7 @@ void loop(){
         digitalWrite(BLED, LOW);        
         string += state3;
        }
+       
        else if(val>=151 && val<=200){
         tmp=4;
         digitalWrite(RLED, LOW);
@@ -152,11 +163,11 @@ void loop(){
     digitalWrite(BLED, LOW);
     delay(1000);
    }*/   
-   for(int i = 0; i < width * string.length() + matrix.width() - 1 - spacer; i++){
+   for(int i = 0; i < width * string.length() + matrix.width() - 1 - spacer; i++){//研究
       matrix.fillScreen(LOW);
       int letter = i / width;
-      int x = (matrix.width() - 1) - i % width;
-      int y = (matrix.height() - 8) / 2; // 文字置中
+      int x = (matrix.width() - 1) - i % width;//寬度
+      int y = (matrix.height() - 8) / 2; // 文字置中 長度
       while(x + width - spacer >= 0 && letter >= 0){
          if(letter < string.length()){
              matrix.drawChar(x, y, string[letter], HIGH, LOW, 1);
